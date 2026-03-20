@@ -75,10 +75,14 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
+      // Load this topic's question history from localStorage so Claude can avoid repeats
+      const historyKey = `qz-history:${topicKey}`;
+      const recentQuestions: string[] = JSON.parse(localStorage.getItem(historyKey) ?? '[]');
+
       const res = await fetch('/api/generate-quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicKey, displayTopic, count, difficulty }),
+        body: JSON.stringify({ topic: topicKey, displayTopic, count, difficulty, recentQuestions }),
       });
 
       if (!res.ok) {
@@ -87,6 +91,12 @@ export default function HomePage() {
       }
 
       const { questions } = await res.json();
+
+      // Save generated questions to localStorage history (keep last 300 per topic)
+      const historyKey = `qz-history:${topicKey}`;
+      const prev: string[] = JSON.parse(localStorage.getItem(historyKey) ?? '[]');
+      const updated = [...prev, ...questions.map((q: { question: string }) => q.question)].slice(-300);
+      localStorage.setItem(historyKey, JSON.stringify(updated));
 
       sessionStorage.setItem(
         'quizState',

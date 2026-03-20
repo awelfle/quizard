@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecentQuestions, saveQuestions } from '@/lib/db';
 import type { QuizQuestion } from '@/lib/types';
 
 const DIFFICULTY_GUIDES: Record<string, string> = {
@@ -10,13 +9,10 @@ const DIFFICULTY_GUIDES: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
-    const { topic, displayTopic, count, difficulty } = await request.json();
+    const { topic, displayTopic, count, difficulty, recentQuestions = [] } = await request.json();
 
     const apiKey = process.env.CLAUDE_API_KEY;
     if (!apiKey) throw new Error('CLAUDE_API_KEY environment variable is not set');
-
-    const normalizedTopic = (topic as string).toLowerCase().trim();
-    const recentQuestions = await getRecentQuestions(normalizedTopic, 60);
 
     const avoidSection =
       recentQuestions.length > 0
@@ -86,8 +82,6 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new Error(`Couldn't generate questions for "${displayTopic}" — try a different topic!`);
     }
-
-    await saveQuestions(normalizedTopic, questions.map((q) => q.question));
 
     return NextResponse.json({ questions });
   } catch (err) {

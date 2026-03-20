@@ -13,6 +13,11 @@ export default function QuizPage() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [transitioning, setTransitioning] = useState(false);
 
+  // Scroll to top whenever the question changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentIndex]);
+
   useEffect(() => {
     const raw = sessionStorage.getItem('quizState');
     if (!raw) {
@@ -53,7 +58,6 @@ export default function QuizPage() {
       setCurrentIndex((i) => i + 1);
       setSelectedAnswer(null);
       setTransitioning(false);
-      window.scrollTo({ top: 0, behavior: 'instant' });
     }, 220);
   };
 

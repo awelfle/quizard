@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const { topic, displayTopic, count, difficulty } = await request.json();
 
     const normalizedTopic = (topic as string).toLowerCase().trim();
-    const recentQuestions = getRecentQuestions(normalizedTopic, 60);
+    const recentQuestions = await getRecentQuestions(normalizedTopic, 60);
 
     const avoidSection =
       recentQuestions.length > 0
@@ -66,7 +66,7 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
       throw new Error('Invalid response format from Claude');
     }
 
-    saveQuestions(normalizedTopic, questions.map((q) => q.question));
+    await saveQuestions(normalizedTopic, questions.map((q) => q.question));
 
     return NextResponse.json({ questions });
   } catch (err) {

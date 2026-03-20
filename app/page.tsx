@@ -1,7 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+
+const WIZARD_ANIMATIONS: React.CSSProperties[] = [
+  { animation: 'wizard-bounce 0.75s ease-in-out infinite' },
+  { animation: 'wizard-spin 0.9s linear infinite' },
+  { animation: 'wizard-orbit 2s linear infinite' },
+  { animation: 'wizard-ping-pong 2.4s ease-in-out infinite' },
+  { animation: 'wizard-wobble 1.1s ease-in-out infinite' },
+  { animation: 'wizard-bounce-spin 1.2s ease-in-out infinite' },
+];
+
+const LOADING_MESSAGES = [
+  "We're off to see the Quizard!",
+  "You're a Quizard, Harry!",
+  "Let the Quizardry commence!",
+  "Do not meddle in the affairs of Quizards…",
+];
 
 const TOPICS = [
   { id: 'one-piece', label: 'One Piece', emoji: '🏴‍☠️', gradient: 'from-orange-500 to-red-600' },
@@ -28,6 +44,16 @@ export default function HomePage() {
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [wizardAnim, setWizardAnim] = useState<React.CSSProperties>(WIZARD_ANIMATIONS[0]);
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!loading) return;
+    const interval = setInterval(() => {
+      setMessageIndex((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const topicKey =
     selectedTopic === 'other' ? otherText.trim() : selectedTopic ?? '';
@@ -44,6 +70,8 @@ export default function HomePage() {
 
   const handleStart = async () => {
     if (!canStart || loading) return;
+    setWizardAnim(WIZARD_ANIMATIONS[Math.floor(Math.random() * WIZARD_ANIMATIONS.length)]);
+    setMessageIndex(0);
     setLoading(true);
     setError(null);
     try {
@@ -81,10 +109,12 @@ export default function HomePage() {
       {/* Loading overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-50 animate-fade-in">
-          <div className="text-7xl mb-5 animate-bounce">🎯</div>
-          <p className="text-3xl font-black text-white mb-2">Generating your quiz…</p>
-          <p className="text-purple-300 text-lg font-bold">
-            Claude is cooking up great questions!
+          <div className="text-7xl mb-10" style={wizardAnim}>🧙‍♂️</div>
+          <p
+            key={messageIndex}
+            className="text-2xl sm:text-3xl font-black text-white mb-2 text-center px-6 animate-message-wipe-up"
+          >
+            {LOADING_MESSAGES[messageIndex]}
           </p>
         </div>
       )}
@@ -92,7 +122,7 @@ export default function HomePage() {
       <div className="w-full max-w-2xl animate-slide-up">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-6xl font-black text-white mb-3 drop-shadow-lg">🎯 Quiz Time!</h1>
+          <h1 className="text-6xl font-black text-white mb-3 drop-shadow-lg">🧙‍♂️ Quizard</h1>
           <p className="text-purple-300 text-xl font-bold">
             Pick your topic and show what you know!
           </p>

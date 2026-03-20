@@ -31,6 +31,51 @@
   to { opacity: 1; }
 }
 
+/* Wizard loading animations */
+@keyframes wizard-bounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-36px); }
+}
+
+@keyframes wizard-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wizard-orbit {
+  from { transform: rotate(0deg) translateX(90px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(90px) rotate(-360deg); }
+}
+
+@keyframes wizard-ping-pong {
+  0%   { transform: translate(0px, 0px); }
+  25%  { transform: translate(130px, -90px); }
+  50%  { transform: translate(0px, -180px); }
+  75%  { transform: translate(-130px, -90px); }
+  100% { transform: translate(0px, 0px); }
+}
+
+@keyframes wizard-wobble {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20%  { transform: translateX(-45px) rotate(-25deg); }
+  40%  { transform: translateX(45px) rotate(25deg); }
+  60%  { transform: translateX(-30px) rotate(-12deg); }
+  80%  { transform: translateX(30px) rotate(12deg); }
+}
+
+@keyframes wizard-bounce-spin {
+  0%   { transform: translateY(0px) rotate(0deg); }
+  25%  { transform: translateY(-40px) rotate(90deg); }
+  50%  { transform: translateY(0px) rotate(180deg); }
+  75%  { transform: translateY(-40px) rotate(270deg); }
+  100% { transform: translateY(0px) rotate(360deg); }
+}
+
+@keyframes message-wipe-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
 .animate-pop-in {
   animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
@@ -41,4 +86,8 @@
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out both;
+}
+
+.animate-message-wipe-up {
+  animation: message-wipe-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

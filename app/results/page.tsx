@@ -179,7 +179,7 @@ export default function ResultsPage() {
           onClick={() => router.push('/')}
           className="w-full py-6 rounded-2xl text-2xl font-black bg-gradient-to-r from-purple-500 to-violet-600 text-white hover:from-purple-400 hover:to-violet-500 shadow-xl transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] select-none"
         >
-          Play Again! 🎯
+          Play Again! 🧙‍♂️
         </button>
       </div>
     </main>

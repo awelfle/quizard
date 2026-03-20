@@ -30,7 +30,7 @@ export default function QuizPage() {
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   const handleSelect = (idx: number) => {
-    if (selectedAnswer !== null || transitioning) return;
+    if (transitioning) return;
     setSelectedAnswer(idx);
   };
 
@@ -106,21 +106,17 @@ export default function QuizPage() {
       >
         {question.choices.map((choice, idx) => {
           const isSelected = selectedAnswer === idx;
-          const isAnswered = selectedAnswer !== null;
 
           return (
             <button
               key={idx}
               onClick={() => handleSelect(idx)}
-              disabled={isAnswered}
               className={[
                 'w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left font-bold text-lg',
-                'transition-all duration-150 min-h-[68px] select-none',
+                'transition-all duration-150 min-h-[68px] select-none cursor-pointer',
                 isSelected
                   ? 'bg-purple-600/80 ring-4 ring-purple-400/50 text-white scale-[1.02] shadow-lg'
-                  : isAnswered
-                  ? 'bg-white/5 text-white/40 cursor-not-allowed'
-                  : 'bg-white/10 text-white hover:bg-white/20 hover:scale-[1.01] active:scale-[0.99] cursor-pointer',
+                  : 'bg-white/10 text-white hover:bg-white/20 hover:scale-[1.01] active:scale-[0.99]',
               ].join(' ')}
             >
               <span

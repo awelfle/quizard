@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { getRecentQuestions, saveQuestions } from '@/lib/db';
 import type { QuizQuestion } from '@/lib/types';
 
@@ -13,11 +12,8 @@ export async function POST(request: NextRequest) {
   try {
     const { topic, displayTopic, count, difficulty } = await request.json();
 
-    // Initialize inside the handler so env vars are guaranteed to be resolved
-    // at request time, not at module-load / build time.
     const apiKey = process.env.CLAUDE_API_KEY;
     if (!apiKey) throw new Error('CLAUDE_API_KEY environment variable is not set');
-    const client = new Anthropic({ apiKey });
 
     const normalizedTopic = (topic as string).toLowerCase().trim();
     const recentQuestions = await getRecentQuestions(normalizedTopic, 60);
@@ -48,15 +44,33 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
   }
 ]`;
 
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
-      system:
-        'You are a quiz master who creates accurate, engaging multiple choice questions for kids. Return ONLY valid JSON arrays with no markdown formatting, no code fences, and no extra text before or after the JSON.',
-      messages: [{ role: 'user', content: prompt }],
+    // Use raw fetch instead of the SDK to avoid any Lambda/bundling quirks
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        system:
+          'You are a quiz master who creates accurate, engaging multiple choice questions for kids. Return ONLY valid JSON arrays with no markdown formatting, no code fences, and no extra text before or after the JSON.',
+        messages: [{ role: 'user', content: prompt }],
+      }),
     });
 
-    const raw = message.content[0].type === 'text' ? message.content[0].text : '';
+    if (!anthropicRes.ok) {
+      const errBody = await anthropicRes.text();
+      throw new Error(`Anthropic API error ${anthropicRes.status}: ${errBody}`);
+    }
+
+    const data = await anthropicRes.json() as {
+      content: Array<{ type: string; text: string }>;
+    };
+
+    const raw = data.content[0]?.type === 'text' ? data.content[0].text : '';
     const cleaned = raw
       .replace(/^```(?:json)?\s*/m, '')
       .replace(/\s*```\s*$/m, '')

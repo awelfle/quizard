@@ -14,11 +14,39 @@ function getScoreMessage(score: number): { text: string; color: string } {
   return { text: 'Keep practicing! 📚', color: 'text-orange-300' };
 }
 
+function playVictoryChime() {
+  try {
+    const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new AudioCtx();
+    // Ascending C-major arpeggio: C5 E5 G5 C6 E6
+    const notes = [523, 659, 784, 1047, 1319];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.28, t + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+      osc.start(t);
+      osc.stop(t + 0.55);
+    });
+  } catch {
+    // AudioContext not available — silently skip
+  }
+}
+
 async function celebrate() {
-  // Haptic feedback
+  // Haptic feedback (Android only — iOS doesn't support navigator.vibrate)
   if ('vibrate' in navigator) {
     navigator.vibrate([80, 40, 80, 40, 160, 40, 80, 40, 80, 80, 400]);
   }
+
+  // Victory chime (works everywhere, including iOS)
+  playVictoryChime();
 
   // Fireworks confetti
   const { default: confetti } = await import('canvas-confetti');

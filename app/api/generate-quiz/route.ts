@@ -83,7 +83,13 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
       throw new Error(`Couldn't generate questions for "${displayTopic}" — try a different topic!`);
     }
 
-    return NextResponse.json({ questions });
+    // Defensive: ensure exactly 4 choices per question regardless of what Claude returned
+    const sanitized = questions.map((q) => ({
+      ...q,
+      choices: (q.choices as string[]).slice(0, 4),
+    }));
+
+    return NextResponse.json({ questions: sanitized });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('Quiz generation error:', message);

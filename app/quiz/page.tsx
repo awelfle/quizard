@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { QuizState } from '@/lib/types';
 
@@ -12,10 +12,12 @@ export default function QuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [transitioning, setTransitioning] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to top whenever the question changes
+  // Scroll the container (not the window) to top on each question —
+  // much more reliable than window.scrollTo on iOS Safari
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [currentIndex]);
 
   useEffect(() => {
@@ -62,7 +64,8 @@ export default function QuizPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-4 sm:py-6">
+    <div ref={scrollRef} className="h-[100dvh] overflow-y-auto">
+    <main className="flex flex-col items-center px-4 py-4 sm:py-6 pb-10">
       {/* Progress */}
       <div className="w-full max-w-2xl mb-4">
         <div className="flex justify-between items-center text-sm font-bold mb-2">
@@ -155,5 +158,6 @@ export default function QuizPage() {
         </button>
       </div>
     </main>
+    </div>
   );
 }

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const avoidSection =
       recentQuestions.length > 0
-        ? `\n\nRECENTLY USED QUESTIONS — do not repeat these or close variations:\n${recentQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`
+        ? `\n\nRECENTLY USED QUESTIONS — do not repeat these or close variations:\n${(recentQuestions as string[]).map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}`
         : '';
 
     const prompt = `Create exactly ${count} multiple choice quiz questions about ${displayTopic} for 12-year-old fans.

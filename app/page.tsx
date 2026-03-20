@@ -93,7 +93,6 @@ export default function HomePage() {
       const { questions } = await res.json();
 
       // Save generated questions to localStorage history (keep last 300 per topic)
-      const historyKey = `qz-history:${topicKey}`;
       const prev: string[] = JSON.parse(localStorage.getItem(historyKey) ?? '[]');
       const updated = [...prev, ...questions.map((q: { question: string }) => q.question)].slice(-300);
       localStorage.setItem(historyKey, JSON.stringify(updated));

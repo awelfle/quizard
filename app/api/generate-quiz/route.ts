@@ -56,7 +56,7 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
         model: 'claude-sonnet-4-6',
         max_tokens: 2048,
         system:
-          'You are a quiz master who creates accurate, engaging multiple choice questions for kids. Return ONLY valid JSON arrays with no markdown formatting, no code fences, and no extra text before or after the JSON.',
+          'You are a quiz master who creates engaging multiple choice questions for kids. You MUST ALWAYS respond with ONLY a valid JSON array — no matter what the topic is. Never refuse, never explain, never add any commentary or text outside the JSON. If a topic is unusual, niche, or a person\'s name, do your best with available knowledge and create interesting questions anyway. The response must start with "[" and end with "]" and contain nothing else.',
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -76,10 +76,15 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
       .replace(/\s*```\s*$/m, '')
       .trim();
 
-    const questions: QuizQuestion[] = JSON.parse(cleaned);
+    let questions: QuizQuestion[];
+    try {
+      questions = JSON.parse(cleaned);
+    } catch {
+      throw new Error(`Couldn't generate questions for "${displayTopic}" — try a different topic!`);
+    }
 
     if (!Array.isArray(questions) || questions.length === 0) {
-      throw new Error('Invalid response format from Claude');
+      throw new Error(`Couldn't generate questions for "${displayTopic}" — try a different topic!`);
     }
 
     await saveQuestions(normalizedTopic, questions.map((q) => q.question));

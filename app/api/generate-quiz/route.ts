@@ -25,8 +25,9 @@ Difficulty: ${(difficulty as string).toUpperCase()} — ${DIFFICULTY_GUIDES[diff
 
 RULES:
 - Every single fact must be 100% verifiably accurate. Never invent or guess information.
-- 4 answer choices per question, exactly one correct answer.
-- Wrong choices should be plausible but clearly wrong to someone who knows the material.
+- EXACTLY 4 answer choices per question — not 3, not 5, always exactly 4.
+- correctIndex must be 0, 1, 2, or 3 — corresponding to one of the 4 choices.
+- Exactly one correct answer, the other three are plausible but wrong.
 - Questions should be varied — mix characters, events, objects, locations, and lore.
 - Make them engaging and fun for 12-year-olds.${avoidSection}
 
@@ -83,11 +84,15 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
       throw new Error(`Couldn't generate questions for "${displayTopic}" — try a different topic!`);
     }
 
-    // Defensive: ensure exactly 4 choices per question regardless of what Claude returned
-    const sanitized = questions.map((q) => ({
-      ...q,
-      choices: (q.choices as string[]).slice(0, 4),
-    }));
+    // Validate: keep only questions with exactly 4 choices and a valid correctIndex.
+    // If the correct answer is beyond index 3, the question is unusable — drop it.
+    const sanitized = questions
+      .filter((q) => Array.isArray(q.choices) && q.choices.length >= 4 && q.correctIndex >= 0 && q.correctIndex <= 3)
+      .map((q) => ({ ...q, choices: (q.choices as string[]).slice(0, 4) }));
+
+    if (sanitized.length === 0) {
+      throw new Error(`Couldn't generate valid questions for "${displayTopic}" — please try again!`);
+    }
 
     return NextResponse.json({ questions: sanitized });
   } catch (err) {

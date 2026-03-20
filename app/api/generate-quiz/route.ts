@@ -3,10 +3,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { getRecentQuestions, saveQuestions } from '@/lib/db';
 import type { QuizQuestion } from '@/lib/types';
 
-export const runtime = 'nodejs';
-
-const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
-
 const DIFFICULTY_GUIDES: Record<string, string> = {
   easy: 'Famous characters, main plot points, iconic moments, and well-known facts that any casual fan would know',
   medium: 'Specific events, character backstories, relationships, key arcs, and details a regular fan would know',
@@ -16,6 +12,12 @@ const DIFFICULTY_GUIDES: Record<string, string> = {
 export async function POST(request: NextRequest) {
   try {
     const { topic, displayTopic, count, difficulty } = await request.json();
+
+    // Initialize inside the handler so env vars are guaranteed to be resolved
+    // at request time, not at module-load / build time.
+    const apiKey = process.env.CLAUDE_API_KEY;
+    if (!apiKey) throw new Error('CLAUDE_API_KEY environment variable is not set');
+    const client = new Anthropic({ apiKey });
 
     const normalizedTopic = (topic as string).toLowerCase().trim();
     const recentQuestions = await getRecentQuestions(normalizedTopic, 60);
@@ -48,7 +50,7 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      max_tokens: 2048,
       system:
         'You are a quiz master who creates accurate, engaging multiple choice questions for kids. Return ONLY valid JSON arrays with no markdown formatting, no code fences, and no extra text before or after the JSON.',
       messages: [{ role: 'user', content: prompt }],
@@ -70,10 +72,8 @@ Return ONLY a raw JSON array (no markdown, no code fences, no extra text):
 
     return NextResponse.json({ questions });
   } catch (err) {
-    console.error('Quiz generation error:', err);
-    return NextResponse.json(
-      { error: 'Failed to generate quiz. Please try again.' },
-      { status: 500 }
-    );
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Quiz generation error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

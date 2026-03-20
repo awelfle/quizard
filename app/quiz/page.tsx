@@ -53,13 +53,14 @@ export default function QuizPage() {
       setCurrentIndex((i) => i + 1);
       setSelectedAnswer(null);
       setTransitioning(false);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }, 220);
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-6">
+    <main className="min-h-screen flex flex-col items-center px-4 py-4 sm:py-6">
       {/* Progress */}
-      <div className="w-full max-w-2xl mb-6">
+      <div className="w-full max-w-2xl mb-4">
         <div className="flex justify-between items-center text-sm font-bold mb-2">
           <span className="text-purple-300">{config.displayTopic}</span>
           <span className="text-white/70">
@@ -78,7 +79,7 @@ export default function QuizPage() {
       <div
         key={currentIndex}
         className={[
-          'w-full max-w-2xl bg-white/10 backdrop-blur-sm rounded-3xl p-6 mb-5',
+          'w-full max-w-2xl bg-white/10 backdrop-blur-sm rounded-3xl p-5 mb-4',
           'transition-opacity duration-200',
           transitioning ? 'opacity-0' : 'opacity-100 animate-pop-in',
         ].join(' ')}

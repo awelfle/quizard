@@ -219,7 +219,39 @@ export default function HomePage() {
           {selectedTopic === 'random' && revealedRandomTopic && (
             <div className="mt-4 p-6 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-700 text-white shadow-xl text-center animate-slide-up">
               <p className="text-sm font-bold mb-1 text-purple-100">Your random topic is...</p>
-              <h3 className="text-3xl font-black">✨ {revealedRandomTopic} ✨</h3>
+              <h3 className="text-3xl font-black mb-3">✨ {revealedRandomTopic} ✨</h3>
+              <button
+                onClick={async () => {
+                  setGeneratingTopic(true);
+                  setError(null);
+                  try {
+                    const res = await fetch('/api/random-topic', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                    });
+
+                    if (!res.ok) {
+                      const data = await res.json();
+                      throw new Error(data.error ?? 'Failed to generate topic');
+                    }
+
+                    const { topic } = await res.json();
+                    setRevealedRandomTopic(topic);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : 'Failed to generate topic. Please try again.');
+                  } finally {
+                    setGeneratingTopic(false);
+                  }
+                }}
+                disabled={generatingTopic}
+                className={[
+                  'text-sm font-bold text-purple-100 transition-all duration-150 hover:text-white flex items-center gap-1 mx-auto',
+                  generatingTopic ? '' : 'hover:scale-105 active:scale-95',
+                ].join(' ')}
+              >
+                <span className={generatingTopic ? 'animate-spin' : ''}>🔄</span>
+                <span>Regenerate</span>
+              </button>
             </div>
           )}
         </section>

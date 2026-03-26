@@ -22,7 +22,7 @@ const LOADING_MESSAGES = [
 const TOPICS = [
   { id: 'one-piece', label: 'One Piece', emoji: '🏴‍☠️', gradient: 'from-orange-500 to-red-600' },
   { id: 'star-wars', label: 'Star Wars', emoji: '⚔️', gradient: 'from-yellow-400 to-amber-600' },
-  { id: 'ninjago', label: 'Ninjago', emoji: '🥷', gradient: 'from-green-500 to-emerald-700' },
+  { id: 'random', label: 'Random', emoji: '🎲', gradient: 'from-pink-500 to-purple-700' },
   { id: 'transformers', label: 'Transformers', emoji: '🤖', gradient: 'from-blue-500 to-indigo-700' },
   { id: 'star-trek', label: 'Star Trek', emoji: '🖖', gradient: 'from-cyan-400 to-blue-700' },
   { id: 'other', label: 'Other...', emoji: '✏️', gradient: 'from-purple-500 to-pink-600' },
@@ -40,9 +40,11 @@ export default function HomePage() {
   const router = useRouter();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [otherText, setOtherText] = useState('');
+  const [revealedRandomTopic, setRevealedRandomTopic] = useState<string | null>(null);
   const [count, setCount] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generatingTopic, setGeneratingTopic] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wizardAnim, setWizardAnim] = useState<React.CSSProperties>(WIZARD_ANIMATIONS[0]);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -56,20 +58,53 @@ export default function HomePage() {
   }, [loading]);
 
   const topicKey =
+    selectedTopic === 'random' ? (revealedRandomTopic ?? '') :
     selectedTopic === 'other' ? otherText.trim() : selectedTopic ?? '';
   const displayTopic =
+    selectedTopic === 'random' ? (revealedRandomTopic ?? '') :
     selectedTopic === 'other'
       ? otherText.trim()
       : TOPICS.find((t) => t.id === selectedTopic)?.label ?? '';
 
   const canStart =
     selectedTopic !== null &&
+    (selectedTopic !== 'random' || revealedRandomTopic !== null) &&
     (selectedTopic !== 'other' || otherText.trim().length > 0) &&
     count !== null &&
     difficulty !== null;
 
   const handleStart = async () => {
-    if (!canStart || loading) return;
+    // Allow proceeding if we're about to generate a random topic
+    const canProceed = selectedTopic === 'random' && !revealedRandomTopic && count !== null && difficulty !== null;
+    if (!canStart && !canProceed) return;
+    if (loading) return;
+
+    // If random topic is selected and not yet generated, generate it first
+    if (selectedTopic === 'random' && !revealedRandomTopic) {
+      setGeneratingTopic(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/random-topic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error ?? 'Failed to generate topic');
+        }
+
+        const { topic } = await res.json();
+        setRevealedRandomTopic(topic);
+        setGeneratingTopic(false);
+        // Don't start the quiz yet, let the user see the revealed topic first
+        return;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to generate topic. Please try again.');
+        setGeneratingTopic(false);
+        return;
+      }
+    }
     setWizardAnim(WIZARD_ANIMATIONS[Math.floor(Math.random() * WIZARD_ANIMATIONS.length)]);
     setMessageIndex(0);
     setLoading(true);
@@ -148,7 +183,13 @@ export default function HomePage() {
               return (
                 <button
                   key={t.id}
-                  onClick={() => setSelectedTopic(t.id)}
+                  onClick={() => {
+                    setSelectedTopic(t.id);
+                    // Reset random topic if switching away from random
+                    if (t.id !== 'random') {
+                      setRevealedRandomTopic(null);
+                    }
+                  }}
                   className={[
                     'relative rounded-2xl p-4 font-black text-lg transition-all duration-150',
                     'flex flex-col items-center gap-2 min-h-[96px] select-none',
@@ -173,6 +214,13 @@ export default function HomePage() {
               onChange={(e) => setOtherText(e.target.value)}
               autoFocus
             />
+          )}
+
+          {selectedTopic === 'random' && revealedRandomTopic && (
+            <div className="mt-4 p-6 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-700 text-white shadow-xl text-center animate-slide-up">
+              <p className="text-sm font-bold mb-1 text-purple-100">Your random topic is...</p>
+              <h3 className="text-3xl font-black">✨ {revealedRandomTopic} ✨</h3>
+            </div>
           )}
         </section>
 
@@ -236,15 +284,24 @@ export default function HomePage() {
         {/* Start button */}
         <button
           onClick={handleStart}
-          disabled={!canStart || loading}
+          disabled={
+            loading ||
+            generatingTopic ||
+            count === null ||
+            difficulty === null ||
+            selectedTopic === null ||
+            (selectedTopic === 'other' && otherText.trim().length === 0)
+          }
           className={[
             'w-full py-6 rounded-2xl text-2xl font-black transition-all duration-150 select-none',
-            canStart
+            (canStart || (selectedTopic === 'random' && !revealedRandomTopic && count !== null && difficulty !== null))
               ? 'bg-gradient-to-r from-purple-500 to-violet-600 text-white hover:from-purple-400 hover:to-violet-500 shadow-xl shadow-purple-900/50 hover:scale-[1.02] active:scale-[0.98]'
               : 'bg-white/10 text-white/30 cursor-not-allowed',
           ].join(' ')}
         >
-          Start Quiz! 🚀
+          {generatingTopic ? 'Generating topic...' :
+           selectedTopic === 'random' && !revealedRandomTopic ? 'Reveal & Start! 🎲' :
+           'Start Quiz! 🚀'}
         </button>
       </div>
     </main>

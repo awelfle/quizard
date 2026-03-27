@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { QuizState } from '@/lib/types';
+import { trackEvent } from '@/lib/analytics';
 
 const LABELS = ['A', 'B', 'C', 'D'];
 
@@ -108,6 +109,16 @@ export default function ResultsPage() {
       (a, i) => a === state.questions[i].correctIndex
     ).length;
     const score = Math.round((correct / state.questions.length) * 100);
+
+    // Track quiz completion
+    trackEvent('quiz_completed', {
+      topic: state.config.displayTopic,
+      count: state.config.count,
+      difficulty: state.config.difficulty,
+      score,
+      correct,
+      perfect: score === 100 ? 1 : 0,
+    });
 
     // Animate count-up
     let current = 0;

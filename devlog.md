@@ -4,6 +4,12 @@
 
 Added Tinylytics tracking to monitor site usage and analytics. Script loads on all pages via the root layout.
 
+Added comprehensive event tracking for quiz generation and completion:
+- `quiz_generated` event tracks topic, question count, and difficulty when a quiz starts
+- `quiz_completed` event tracks the same config plus score, correct count, and whether it was a perfect score
+- Created analytics utility (`lib/analytics.ts`) to send events via navigator.sendBeacon
+- Events enable analysis of completion rates, popular topics, and comparative stats (e.g., "12% of Star Trek hard-mode quizzes get 100%")
+
 ## 2026-03-25: Random topic feature with regeneration
 
 Replaced the Ninjago topic button with a "Random" topic generator that uses Claude to pick varied quiz topics.

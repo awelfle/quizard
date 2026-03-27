@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { trackEvent } from '@/lib/analytics';
 
 const WIZARD_ANIMATIONS: React.CSSProperties[] = [
   { animation: 'wizard-bounce 0.75s ease-in-out infinite' },
@@ -140,6 +141,13 @@ export default function HomePage() {
           answers: new Array(questions.length).fill(-1),
         })
       );
+
+      // Track quiz generation
+      trackEvent('quiz_generated', {
+        topic: displayTopic,
+        count: count!,
+        difficulty: difficulty!,
+      });
 
       router.push('/quiz');
     } catch (err) {

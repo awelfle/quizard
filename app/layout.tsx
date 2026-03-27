@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Nunito } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import HomeButton from './components/HomeButton';
 import StarField from './components/StarField';
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={nunito.variable}>
       <body className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 text-white flex flex-col">
+        <Script defer src="https://tinylytics.app/embed/fcmUHjFamMemKuynmcnb.js" />
         <StarField />
         <HomeButton />
         <div className="relative z-10 flex-1">{children}</div>

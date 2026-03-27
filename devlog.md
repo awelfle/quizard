@@ -1,5 +1,9 @@
 # Quizard devlog
 
+## 2026-03-27: Added Tinylytics analytics
+
+Added Tinylytics tracking to monitor site usage and analytics. Script loads on all pages via the root layout.
+
 ## 2026-03-25: Random topic feature with regeneration
 
 Replaced the Ninjago topic button with a "Random" topic generator that uses Claude to pick varied quiz topics.

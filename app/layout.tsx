@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={nunito.variable}>
       <body className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 text-white flex flex-col">
-        <Script defer src="https://tinylytics.app/embed/fcmUHjFamMemKuynmcnb.js" />
+        <Script defer src="https://tinylytics.app/embed/fcmUHjFamMemKuynmcnb.js?events" />
         <StarField />
         <HomeButton />
         <div className="relative z-10 flex-1">{children}</div>

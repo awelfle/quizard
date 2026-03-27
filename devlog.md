@@ -2,7 +2,7 @@
 
 ## 2026-03-27: Added Tinylytics analytics
 
-Added Tinylytics tracking to monitor site usage and analytics. Script loads on all pages via the root layout.
+Added Tinylytics tracking to monitor site usage and analytics. Script loads on all pages via the root layout with `?events` parameter enabled.
 
 Added comprehensive event tracking for quiz generation and completion:
 - `quiz_generated` event tracks topic, question count, and difficulty when a quiz starts
